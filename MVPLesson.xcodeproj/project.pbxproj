@@ -18,6 +18,8 @@
 		4B69A40D2A8195000067F993 /* ServiceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B69A40C2A8195000067F993 /* ServiceRepository.swift */; };
 		4B69A40F2A81AD130067F993 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B69A40E2A81AD130067F993 /* AppView.swift */; };
 		4B69A4132A81CB000067F993 /* NotePresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B69A4122A81CB000067F993 /* NotePresenter.swift */; };
+		4B6CA56A2AE9CA4500FAD7D7 /* StoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6CA5692AE9CA4500FAD7D7 /* StoryViewController.swift */; };
+		4B6CA56C2AE9CC3100FAD7D7 /* StoryPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6CA56B2AE9CC3100FAD7D7 /* StoryPresenter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +36,8 @@
 		4B69A40C2A8195000067F993 /* ServiceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRepository.swift; sourceTree = "<group>"; };
 		4B69A40E2A81AD130067F993 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		4B69A4122A81CB000067F993 /* NotePresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotePresenter.swift; sourceTree = "<group>"; };
+		4B6CA5692AE9CA4500FAD7D7 /* StoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewController.swift; sourceTree = "<group>"; };
+		4B6CA56B2AE9CC3100FAD7D7 /* StoryPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPresenter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,7 +73,9 @@
 				4B69A3F42A8180570067F993 /* AppDelegate.swift */,
 				4B69A3F62A8180570067F993 /* SceneDelegate.swift */,
 				4B69A3F82A8180570067F993 /* NoteViewController.swift */,
+				4B6CA5692AE9CA4500FAD7D7 /* StoryViewController.swift */,
 				4B69A4122A81CB000067F993 /* NotePresenter.swift */,
+				4B6CA56B2AE9CC3100FAD7D7 /* StoryPresenter.swift */,
 				4B69A4082A81842F0067F993 /* Note.swift */,
 				4B69A40A2A8186CA0067F993 /* FileHandler.swift */,
 				4B69A40E2A81AD130067F993 /* AppView.swift */,
@@ -153,9 +159,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4B6CA56C2AE9CC3100FAD7D7 /* StoryPresenter.swift in Sources */,
 				4B69A3F92A8180570067F993 /* NoteViewController.swift in Sources */,
 				4B69A3F52A8180570067F993 /* AppDelegate.swift in Sources */,
 				4B69A3F72A8180570067F993 /* SceneDelegate.swift in Sources */,
+				4B6CA56A2AE9CA4500FAD7D7 /* StoryViewController.swift in Sources */,
 				4B69A40F2A81AD130067F993 /* AppView.swift in Sources */,
 				4B69A4132A81CB000067F993 /* NotePresenter.swift in Sources */,
 				4B69A40B2A8186CA0067F993 /* FileHandler.swift in Sources */,
