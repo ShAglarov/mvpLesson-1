@@ -43,7 +43,7 @@ final class ServiceRepository: ServiceRepositoryProtocol {
         !notesCache.isEmpty ? completion(.success(notesCache)) : nil
         
         // Запрос данных из файла
-        fileHandler.fetch(completion: { result in
+        fileHandler.fetchData(from: fileHandler.notesURL, completion: { result in
             switch result {
             case .success(let dataContent):
                 // Если файл пустой, возвращаем пустой массив
@@ -76,7 +76,7 @@ final class ServiceRepository: ServiceRepositoryProtocol {
         // Кодируем все заметки и сохраняем в файл
         switch fileHandler.encodeNotes(notesCache) {
         case .success(let data):
-            fileHandler.write(data, completion: completion)
+            fileHandler.writeData(data, to: fileHandler.notesURL, completion: completion)
         case .failure(let error):
             completion(.failure(error))
         }
@@ -100,7 +100,8 @@ final class ServiceRepository: ServiceRepositoryProtocol {
         // Кодируем заметки из notesCache и сохраняем в файл
         switch fileHandler.encodeNotes(notesCache) {
         case .success(let data):
-            fileHandler.write(data, completion: completion)
+            fileHandler.writeData(data, to: fileHandler.notesURL, completion: completion)
+            fileHandler.writeData(data, to: fileHandler.storyNotesURL, completion: completion)
         case .failure(let error):
             completion(.failure(error))
         }
@@ -119,7 +120,7 @@ final class ServiceRepository: ServiceRepositoryProtocol {
         // Кодируем все оставшиеся заметки и сохраняем в файл
         switch fileHandler.encodeNotes(notesCache) {
         case .success(let data):
-            fileHandler.write(data, completion: completion)
+            fileHandler.writeData(data, to: fileHandler.notesURL, completion: completion)
         case .failure(let error):
             completion(.failure(error))
         }

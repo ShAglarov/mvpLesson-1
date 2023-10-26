@@ -27,7 +27,6 @@ class NotePresenter: NotePresenterProtocol {
     private var dataRepository: ServiceRepositoryProtocol
     // Локальное хранение заметок для быстрого доступа
     private var notes: [Note] = []
-    private var storyNotes: [Note] = []
     
     // Инициализация presenter'а
     required init(view: NoteViewProtocol, dataRepository: ServiceRepositoryProtocol) {
