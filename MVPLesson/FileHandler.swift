@@ -9,50 +9,55 @@ import Foundation
 
 // Протокол, описывающий методы для работы с файлами
 protocol FileHandlerProtocol {
+    var notesURL: URL { get set }
+    var storyNotesURL: URL { get set }
+    
     typealias FetchCompletion = (Result<Data, Error>) -> Void
     typealias WriteCompletion = (Result<Void, Error>) -> Void
     typealias EncodeResult = Result<Data, Error>
 
-    func fetch(completion: @escaping FetchCompletion)
-    func write(_ data: Data, completion: @escaping WriteCompletion)
+    func fetchData(from url: URL, completion: @escaping FetchCompletion)
+    func writeData(_ data: Data, to url: URL, completion: @escaping WriteCompletion)
     func encodeNotes(_ notes: [Note]) -> EncodeResult
 }
 
 class FileHandler: FileHandlerProtocol {
     
     // URL файла, в который будут сохраняться и из которого будут извлекаться данные
-    private var url: URL
+    var notesURL: URL
+    var storyNotesURL: URL
     
     // Инициализатор создаёт URL к файлу и, если файл не существует, создаёт его
     init() {
         // Определение директории документов пользователя
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        url = documentsDirectory.appendingPathComponent("todo").appendingPathExtension("plist")
+        notesURL = documentsDirectory.appendingPathComponent("todo").appendingPathExtension("plist")
+        storyNotesURL = documentsDirectory.appendingPathComponent("storyNotes").appendingPathExtension("plist")
         
-        // Проверка существования файла по указанному URL. Если файл не существует, он создаётся.
-        if !FileManager.default.fileExists(atPath: url.path) {
-            FileManager.default.createFile(atPath: url.path, contents: nil)
+        // Проверка существования файлов по указанным URL. Если файл не существует, он создаётся.
+        [notesURL, storyNotesURL].forEach {
+            if !FileManager.default.fileExists(atPath: $0.path) {
+                FileManager.default.createFile(atPath: $0.path, contents: nil)
+            }
         }
     }
     
     // Метод для извлечения данных из файла
-    func fetch(completion: @escaping FetchCompletion) {
+    func fetchData(from url: URL, completion: @escaping FetchCompletion) {
         do {
             let data = try Data(contentsOf: url)
             completion(.success(data))
         } catch {
-            // В случае ошибки при извлечении данных возвращается ошибка
             completion(.failure(error))
         }
     }
     
     // Метод для записи данных в файл
-    func write(_ data: Data, completion: @escaping WriteCompletion) {
+    func writeData(_ data: Data, to url: URL, completion: @escaping WriteCompletion) {
         do {
             try data.write(to: url)
             completion(.success(()))
         } catch {
-            // В случае ошибки при записи данных выводится сообщение об ошибке и возвращается ошибка
             print("При записи данных произошла ошибка: \(error)")
             completion(.failure(error))
         }
