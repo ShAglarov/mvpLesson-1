@@ -5,9 +5,10 @@
 //  Created by Shamil Aglarov on 26.10.2023.
 //
 // Описание методов, которые должны быть реализованы presenter'ом заметок
+// Описание методов, которые должны быть реализованы presenter'ом заметок
 protocol StoryPresenterProtocol {
     func loadAnUpdateDisplayData()
-    func addStory(note: Note)
+    func addNote(note: Note)
     func deleteNote(at index: Int)
     func numberOfNotes() -> Int
     func noteAt(at index: Int) -> Note
@@ -15,6 +16,7 @@ protocol StoryPresenterProtocol {
     func isToggleNote(for index: Int)
 }
 
+// Класс presenter'а, который управляет логикой работы с заметками
 class StoryPresenter: StoryPresenterProtocol {
     
     // Слабая ссылка на интерфейс view, чтобы избежать утечек памяти
@@ -33,7 +35,7 @@ class StoryPresenter: StoryPresenterProtocol {
     // Загрузка и обновление данных для отображения
     func loadAnUpdateDisplayData() {
         view?.showLoading() // Показать индикатор загрузки на view
-        dataRepository.fetchNotes(completion: { [weak self] result in
+        dataRepository.fetchNotes(url: dataRepository.storyURL, completion: { [weak self] result in
             switch result {
             case .success(let notes):
                 // Сортировка заметок по дате
@@ -48,9 +50,9 @@ class StoryPresenter: StoryPresenterProtocol {
     }
     
     // Добавить новую заметку
-    func addStory(note: Note) {
+    func addNote(note: Note) {
         view?.showLoading()
-        dataRepository.saveData(note: note, completion: { [weak self] result in
+        dataRepository.saveData(url: dataRepository.storyURL, note: note, completion: { [weak self] result in
             switch result {
             case .success:
                 self?.stories.append(note)
@@ -68,7 +70,7 @@ class StoryPresenter: StoryPresenterProtocol {
     // Удалить заметку по индексу
     func deleteNote(at index: Int) {
         let note = stories[index]
-        dataRepository.removeData(note: note, completion: { [weak self] result in
+        dataRepository.removeData(url: dataRepository.noteURL, note: note, completion: { [weak self] result in
             switch result {
             case .success:
                 self?.stories.remove(at: index)
@@ -99,12 +101,23 @@ class StoryPresenter: StoryPresenterProtocol {
         var note = stories[index]
         note.isComplete.toggle()
 
-        dataRepository.updateNote(note, completion: { result in
+        dataRepository.updateNote(url: dataRepository.storyURL, note, completion: { result in
             switch result {
             case .success:
                 print("Заметка успешно обновилась")
-                self.stories[index] = note
-                self.view?.reloadRow(at: index)
+                self.stories.remove(at: index)
+                self.view?.didDeleteRow(at: index)
+                
+                // Добавляем эту же заметку в другую таблицу/базу данных
+                self.dataRepository.saveData(url: self.dataRepository.noteURL, note: note, completion: { result in
+                    switch result {
+                    case .success:
+                        print("Заметка успешно добавлена в другую таблицу")
+                    case .failure(let error):
+                        self.view?.showError(title: "Ошибка", message: "Не удалось добавить заметку в другую таблицу: \(error.localizedDescription)")
+                    }
+                })
+                
             case .failure(let error):
                 self.view?.showError(title: "Ошибка4", message: error.localizedDescription)
             }

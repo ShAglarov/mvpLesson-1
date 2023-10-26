@@ -51,7 +51,6 @@ class NoteViewController: UIViewController {
     
     // Презентер, обеспечивающий бизнес-логику.
     private var notePresenter: NotePresenterProtocol!
-    private var storyPresenter: StoryPresenterProtocol!
     
     // Таблица для отображения списка заметок.
     private var tableView: UITableView!
@@ -71,7 +70,6 @@ class NoteViewController: UIViewController {
         
         // Загрузка и обновление данных для отображения.
         notePresenter.loadAnUpdateDisplayData()
-        reloadData()
     }
     
     // MARK: - Настройка пользовательского интерфейса
@@ -104,7 +102,6 @@ class NoteViewController: UIViewController {
         
         // Инициализация презентера с вью и репозиторием.
         notePresenter = NotePresenter(view: self, dataRepository: ServiceRepository(fileHandler: fileHandler))
-        storyPresenter = StoryPresenter(view: self, dataRepository: ServiceRepository(fileHandler: fileHandler))
     }
     
     // MARK: - Действия пользователя
@@ -188,10 +185,6 @@ extension NoteViewController: NoteViewProtocol {
     func reloadData() {
         tableView.reloadData()
     }
-}
-
-extension NoteViewController: StoryViewProtocol {
-    
 }
 
 // MARK: - Реализация UITableViewDataSource для отображения данных заметок в таблице

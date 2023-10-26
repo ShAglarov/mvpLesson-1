@@ -46,7 +46,6 @@ class StoryViewController: UIViewController {
         
         // Загрузка и обновление данных для отображения.
         presenter.loadAnUpdateDisplayData()
-        reloadData()
     }
     
     // MARK: - Настройка пользовательского интерфейса
@@ -64,7 +63,7 @@ class StoryViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
-        navigationItem.title = "Напоминания"
+        navigationItem.title = "История напоминаний"
         
         // Кнопка добавления новой заметки.
         navigationItem.rightBarButtonItem =
@@ -237,7 +236,7 @@ extension StoryViewController: AddingNotesProtocol {
             addActionTitle: "Добавить",
             cancelActionTitle: "Закрыть") { [weak self] title, note in
             let newNote = Note(title: title, isComplete: false, date: Date(), notes: note)
-            self?.presenter.addStory(note: newNote)
+            //self?.presenter.addStory(note: newNote)
         }
     }
 }

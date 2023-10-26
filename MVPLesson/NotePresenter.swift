@@ -27,7 +27,6 @@ class NotePresenter: NotePresenterProtocol {
     private var dataRepository: ServiceRepositoryProtocol
     // Локальное хранение заметок для быстрого доступа
     private var notes: [Note] = []
-    private var storyNotes: [Note] = []
     
     // Инициализация presenter'а
     required init(view: NoteViewProtocol, dataRepository: ServiceRepositoryProtocol) {
@@ -38,7 +37,7 @@ class NotePresenter: NotePresenterProtocol {
     // Загрузка и обновление данных для отображения
     func loadAnUpdateDisplayData() {
         view?.showLoading() // Показать индикатор загрузки на view
-        dataRepository.fetchNotes(completion: { [weak self] result in
+        dataRepository.fetchNotes(url: dataRepository.noteURL, completion: { [weak self] result in
             switch result {
             case .success(let notes):
                 // Сортировка заметок по дате
@@ -55,7 +54,7 @@ class NotePresenter: NotePresenterProtocol {
     // Добавить новую заметку
     func addNote(note: Note) {
         view?.showLoading()
-        dataRepository.saveData(note: note, completion: { [weak self] result in
+        dataRepository.saveData(url: dataRepository.noteURL, note: note, completion: { [weak self] result in
             switch result {
             case .success:
                 self?.notes.append(note)
@@ -73,7 +72,7 @@ class NotePresenter: NotePresenterProtocol {
     // Удалить заметку по индексу
     func deleteNote(at index: Int) {
         let note = notes[index]
-        dataRepository.removeData(note: note, completion: { [weak self] result in
+        dataRepository.removeData(url: dataRepository.noteURL, note: note, completion: { [weak self] result in
             switch result {
             case .success:
                 self?.notes.remove(at: index)
@@ -104,12 +103,23 @@ class NotePresenter: NotePresenterProtocol {
         var note = notes[index]
         note.isComplete.toggle()
 
-        dataRepository.updateNote(note, completion: { result in
+        dataRepository.updateNote(url: dataRepository.noteURL, note, completion: { result in
             switch result {
             case .success:
                 print("Заметка успешно обновилась")
                 self.notes.remove(at: index)
                 self.view?.didDeleteRow(at: index)
+                
+                // Добавляем эту же заметку в другую таблицу/базу данных
+                self.dataRepository.saveData(url: self.dataRepository.storyURL, note: note, completion: { result in
+                    switch result {
+                    case .success:
+                        print("Заметка успешно добавлена в другую таблицу")
+                    case .failure(let error):
+                        self.view?.showError(title: "Ошибка", message: "Не удалось добавить заметку в другую таблицу: \(error.localizedDescription)")
+                    }
+                })
+                
             case .failure(let error):
                 self.view?.showError(title: "Ошибка4", message: error.localizedDescription)
             }
