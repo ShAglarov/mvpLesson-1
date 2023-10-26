@@ -30,6 +30,7 @@ final class ServiceRepository: ServiceRepositoryProtocol {
     
     private let fileHandler: FileHandlerProtocol  // Обработчик файлов для чтения и записи заметок
     private var notesCache = [Note]()             // Кэш для заметок, чтобы не обращаться к файлу каждый раз
+    private var storyCache = [Note]()             // Кэш для заметок, чтобы не обращаться к файлу каждый раз
     
     // Инициализатор принимает обработчик файлов
     init(fileHandler: FileHandlerProtocol) {
@@ -88,10 +89,15 @@ final class ServiceRepository: ServiceRepositoryProtocol {
             completion(.failure(NoteServiceError.noteNotFound("Не удалось найти заметку")))
             return
         }
-        // Обновляем заметку в кэше
-        notesCache[index] = noteToUpdate
         
-        // Кодируем все заметки и сохраняем в файл
+        // Обновляем заметку в кэше
+        if noteToUpdate.isComplete {
+            notesCache[index] = noteToUpdate
+            storyCache.append(notesCache[index])  // Добавляем в storyCache
+            notesCache.remove(at: index)          // Удаляем из notesCache
+        }
+        
+        // Кодируем заметки из notesCache и сохраняем в файл
         switch fileHandler.encodeNotes(notesCache) {
         case .success(let data):
             fileHandler.write(data, completion: completion)

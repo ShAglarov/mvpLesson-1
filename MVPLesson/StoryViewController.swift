@@ -70,7 +70,7 @@ class StoryViewController: UIViewController {
         navigationItem.rightBarButtonItem =
             UIBarButtonItem(barButtonSystemItem: .add,
                             target: self,
-                            action: #selector(addNote))
+                            action: #selector(addStory))
     }
     
     private func setupPresenter() {
@@ -84,7 +84,7 @@ class StoryViewController: UIViewController {
     // MARK: - Действия пользователя
     
     /// Действие при нажатии на кнопку добавления новой заметки.
-    @objc func addNote() {
+    @objc func addStory() {
         showLoading()
         createButtonTapped()
     }
@@ -110,7 +110,7 @@ class StoryViewController: UIViewController {
     }
 }
 
-// MARK: - Реализация NoteViewProtocol для управления отображением UI
+// MARK: - Реализация StoryViewProtocol для управления отображением UI
 
 extension StoryViewController: StoryViewProtocol {
     
@@ -133,7 +133,7 @@ extension StoryViewController: StoryViewProtocol {
     func hideLoading() {
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                                  target: self,
-                                                                 action: #selector(addNote))
+                                                                 action: #selector(addStory))
     }
     
     // Вставка строки в таблицу при добавлении новой заметки
@@ -237,7 +237,7 @@ extension StoryViewController: AddingNotesProtocol {
             addActionTitle: "Добавить",
             cancelActionTitle: "Закрыть") { [weak self] title, note in
             let newNote = Note(title: title, isComplete: false, date: Date(), notes: note)
-            self?.presenter.addNote(note: newNote)
+            self?.presenter.addStory(note: newNote)
         }
     }
 }

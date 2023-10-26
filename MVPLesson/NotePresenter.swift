@@ -27,6 +27,7 @@ class NotePresenter: NotePresenterProtocol {
     private var dataRepository: ServiceRepositoryProtocol
     // Локальное хранение заметок для быстрого доступа
     private var notes: [Note] = []
+    private var storyNotes: [Note] = []
     
     // Инициализация presenter'а
     required init(view: NoteViewProtocol, dataRepository: ServiceRepositoryProtocol) {
@@ -107,8 +108,8 @@ class NotePresenter: NotePresenterProtocol {
             switch result {
             case .success:
                 print("Заметка успешно обновилась")
-                self.notes[index] = note
-                self.view?.reloadRow(at: index)
+                self.notes.remove(at: index)
+                self.view?.didDeleteRow(at: index)
             case .failure(let error):
                 self.view?.showError(title: "Ошибка4", message: error.localizedDescription)
             }

@@ -50,7 +50,8 @@ class NoteViewController: UIViewController {
     private let appView = AppView()
     
     // Презентер, обеспечивающий бизнес-логику.
-    private var presenter: NotePresenterProtocol!
+    private var notePresenter: NotePresenterProtocol!
+    private var storyPresenter: StoryPresenterProtocol!
     
     // Таблица для отображения списка заметок.
     private var tableView: UITableView!
@@ -69,7 +70,7 @@ class NoteViewController: UIViewController {
         super.viewWillAppear(animated)
         
         // Загрузка и обновление данных для отображения.
-        presenter.loadAnUpdateDisplayData()
+        notePresenter.loadAnUpdateDisplayData()
         reloadData()
     }
     
@@ -102,7 +103,8 @@ class NoteViewController: UIViewController {
         let fileHandler: FileHandlerProtocol = FileHandler()
         
         // Инициализация презентера с вью и репозиторием.
-        presenter = NotePresenter(view: self, dataRepository: ServiceRepository(fileHandler: fileHandler))
+        notePresenter = NotePresenter(view: self, dataRepository: ServiceRepository(fileHandler: fileHandler))
+        storyPresenter = StoryPresenter(view: self, dataRepository: ServiceRepository(fileHandler: fileHandler))
     }
     
     // MARK: - Действия пользователя
@@ -117,7 +119,7 @@ class NoteViewController: UIViewController {
     @objc func buttonAction(sender: UIButton) {
         let buttonPosition = sender.convert(CGPoint.zero, to: self.tableView)
         guard let indexPath = self.tableView.indexPathForRow(at: buttonPosition) else { return }
-        presenter.isToggleNote(for: indexPath.row)
+        notePresenter.isToggleNote(for: indexPath.row)
     }
     
     // MARK: - Конфигурация элементов интерфейса
@@ -188,23 +190,27 @@ extension NoteViewController: NoteViewProtocol {
     }
 }
 
+extension NoteViewController: StoryViewProtocol {
+    
+}
+
 // MARK: - Реализация UITableViewDataSource для отображения данных заметок в таблице
 
 extension NoteViewController: UITableViewDataSource {
     
     // Возвращаем количество заметок для отображения
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return presenter.numberOfNotes()
+        return notePresenter.numberOfNotes()
     }
     
     // Заполняем ячейку таблицы данными из модели
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "Cell")
-        let note = presenter.noteAt(at: indexPath.row)
+        let note = notePresenter.noteAt(at: indexPath.row)
         
         // Создание и настройка кнопки для отображения статуса заметки
         let iconButton = UIButton(type: .custom)
-        let image = presenter.getImage(for: note.isComplete)
+        let image = notePresenter.getImage(for: note.isComplete)
         iconButton.setImage(UIImage(systemName: image), for: .normal)
         // Важно! Отключаем автоматические constraints
         iconButton.translatesAutoresizingMaskIntoConstraints = false
@@ -241,8 +247,8 @@ extension NoteViewController: UITableViewDelegate {
     // Удаление заметки при свайпе ячейки
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            presenter.deleteNote(at: indexPath.row)
-            presenter.loadAnUpdateDisplayData()
+            notePresenter.deleteNote(at: indexPath.row)
+            notePresenter.loadAnUpdateDisplayData()
         }
     }
 }
@@ -261,7 +267,7 @@ extension NoteViewController: AddingNotesProtocol {
             addActionTitle: "Добавить",
             cancelActionTitle: "Закрыть") { [weak self] title, note in
             let newNote = Note(title: title, isComplete: false, date: Date(), notes: note)
-            self?.presenter.addNote(note: newNote)
+            self?.notePresenter.addNote(note: newNote)
         }
     }
 }
