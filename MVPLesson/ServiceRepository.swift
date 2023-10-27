@@ -32,6 +32,7 @@ enum NoteServiceError: Error {
 final class ServiceRepository: ServiceRepositoryProtocol {
     
     private let fileHandler: FileHandlerProtocol  // Обработчик файлов для чтения и записи заметок
+    // вместо создания пустых данных нужно загружать из файла
     private var notesCache = [Note]()             // Кэш для заметок, чтобы не обращаться к файлу каждый раз
     private var storyCache = [Note]()             // Кэш для заметок, чтобы не обращаться к файлу каждый раз
    
@@ -62,14 +63,26 @@ final class ServiceRepository: ServiceRepositoryProtocol {
                     completion(.success([]))
                     return
                 }
-                // Декодируем данные из файла
+                // Декодируем данные из файла для notes
                 let propertyListDecoder = PropertyListDecoder()
                 guard let notes = try? propertyListDecoder.decode([Note].self, from: dataContent) else {
                     completion(.failure(NoteServiceError.fileReadError("Не удалось декодировать данные в массив заметок")))
                     return
                 }
-                // Обновляем кэш и возвращаем результат
+                // Обновляем кэш для notes и возвращаем результат
                 self.notesCache = notes
+
+                // Теперь декодируем данные из файла для story
+                // Здесь важно, чтобы тип данных для story был правильным
+                // После декодирования обновляем кэш для story
+                if url == self.storyURL {
+                    guard let story = try? propertyListDecoder.decode([Note].self, from: dataContent) else {
+                        completion(.failure(NoteServiceError.fileReadError("Не удалось декодировать данные в массив заметок для story")))
+                        return
+                    }
+                    self.storyCache = story
+                }
+                
                 completion(.success(notes))
                 
             case .failure(let error):
