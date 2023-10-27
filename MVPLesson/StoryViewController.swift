@@ -1,35 +1,14 @@
 //
-//  ViewController.swift
+//  StoryViewController.swift
 //  MVPLesson
 //
-//  Created by Shamil Aglarov on 07.08.2023.
+//  Created by Shamil Aglarov on 26.10.2023.
 //
 
 import UIKit
 
-// MARK: - Протоколы
-
-// Протокол, отвечающий за реакцию на создание новой заметки.
-protocol AddingNotesProtocol {
-    func createButtonTapped()
-}
-
-// Протокол для отображения предупреждений с текстовыми полями.
-protocol AlertViewProtocol  {
-    /// Функция для показа предупреждения с двумя текстовыми полями.
-    func presentAlertWithTextFields(
-        title: String,
-        message: String,
-        firstTextFieldPlaceholder: String,
-        secondTextFieldPlaceholder: String,
-        addActionTitle: String,
-        cancelActionTitle: String,
-        addActionCompletion: @escaping (String, String) -> Void
-    )
-}
-
 // Протокол, описывающий интерфейс отображения заметок.
-protocol NoteViewProtocol: AnyObject {
+protocol StoryViewProtocol: AnyObject {
     func showError(title: String, message: String)
     func showLoading()
     func hideLoading()
@@ -39,10 +18,7 @@ protocol NoteViewProtocol: AnyObject {
     func didDeleteRow(at index: Int)
 }
 
-// MARK: - NoteViewController
-
-/// Основной класс контроллера для управления заметками.
-class NoteViewController: UIViewController {
+class StoryViewController: UIViewController {
     
     // MARK: - Приватные свойства
     
@@ -50,7 +26,7 @@ class NoteViewController: UIViewController {
     private let appView = AppView()
     
     // Презентер, обеспечивающий бизнес-логику.
-    private var notePresenter: NotePresenterProtocol!
+    private var presenter: StoryPresenterProtocol!
     
     // Таблица для отображения списка заметок.
     private var tableView: UITableView!
@@ -69,7 +45,7 @@ class NoteViewController: UIViewController {
         super.viewWillAppear(animated)
         
         // Загрузка и обновление данных для отображения.
-        notePresenter.loadAnUpdateDisplayData()
+        presenter.loadAnUpdateDisplayData()
     }
     
     // MARK: - Настройка пользовательского интерфейса
@@ -87,13 +63,13 @@ class NoteViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
-        navigationItem.title = "Напоминания"
+        navigationItem.title = "История напоминаний"
         
         // Кнопка добавления новой заметки.
         navigationItem.rightBarButtonItem =
             UIBarButtonItem(barButtonSystemItem: .add,
                             target: self,
-                            action: #selector(addNote))
+                            action: #selector(addStory))
     }
     
     private func setupPresenter() {
@@ -101,13 +77,13 @@ class NoteViewController: UIViewController {
         let fileHandler: FileHandlerProtocol = FileHandler()
         
         // Инициализация презентера с вью и репозиторием.
-        notePresenter = NotePresenter(view: self, dataRepository: ServiceRepository(fileHandler: fileHandler))
+        presenter = StoryPresenter(view: self, dataRepository: ServiceRepository(fileHandler: fileHandler))
     }
     
     // MARK: - Действия пользователя
     
     /// Действие при нажатии на кнопку добавления новой заметки.
-    @objc func addNote() {
+    @objc func addStory() {
         showLoading()
         createButtonTapped()
     }
@@ -116,7 +92,7 @@ class NoteViewController: UIViewController {
     @objc func buttonAction(sender: UIButton) {
         let buttonPosition = sender.convert(CGPoint.zero, to: self.tableView)
         guard let indexPath = self.tableView.indexPathForRow(at: buttonPosition) else { return }
-        notePresenter.isToggleNote(for: indexPath.row)
+        presenter.isToggleNote(for: indexPath.row)
     }
     
     // MARK: - Конфигурация элементов интерфейса
@@ -133,9 +109,9 @@ class NoteViewController: UIViewController {
     }
 }
 
-// MARK: - Реализация NoteViewProtocol для управления отображением UI
+// MARK: - Реализация StoryViewProtocol для управления отображением UI
 
-extension NoteViewController: NoteViewProtocol {
+extension StoryViewController: StoryViewProtocol {
     
     // Отображение ошибки с помощью всплывающего окна
     func showError(title: String, message: String) {
@@ -156,7 +132,7 @@ extension NoteViewController: NoteViewProtocol {
     func hideLoading() {
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                                  target: self,
-                                                                 action: #selector(addNote))
+                                                                 action: #selector(addStory))
     }
     
     // Вставка строки в таблицу при добавлении новой заметки
@@ -189,21 +165,21 @@ extension NoteViewController: NoteViewProtocol {
 
 // MARK: - Реализация UITableViewDataSource для отображения данных заметок в таблице
 
-extension NoteViewController: UITableViewDataSource {
+extension StoryViewController: UITableViewDataSource {
     
     // Возвращаем количество заметок для отображения
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return notePresenter.numberOfNotes()
+        return presenter.numberOfNotes()
     }
     
     // Заполняем ячейку таблицы данными из модели
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "Cell")
-        let note = notePresenter.noteAt(at: indexPath.row)
+        let note = presenter.noteAt(at: indexPath.row)
         
         // Создание и настройка кнопки для отображения статуса заметки
         let iconButton = UIButton(type: .custom)
-        let image = notePresenter.getImage(for: note.isComplete)
+        let image = presenter.getImage(for: note.isComplete)
         iconButton.setImage(UIImage(systemName: image), for: .normal)
         // Важно! Отключаем автоматические constraints
         iconButton.translatesAutoresizingMaskIntoConstraints = false
@@ -235,20 +211,20 @@ extension NoteViewController: UITableViewDataSource {
 
 // MARK: - Реализация UITableViewDelegate для обработки действий пользователя с таблицей
 
-extension NoteViewController: UITableViewDelegate {
+extension StoryViewController: UITableViewDelegate {
     
     // Удаление заметки при свайпе ячейки
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            notePresenter.deleteNote(at: indexPath.row)
-            notePresenter.loadAnUpdateDisplayData()
+            presenter.deleteNote(at: indexPath.row)
+            presenter.loadAnUpdateDisplayData()
         }
     }
 }
 
 // MARK: - Реализация AddingNotesProtocol для добавления новых заметок
 
-extension NoteViewController: AddingNotesProtocol {
+extension StoryViewController: AddingNotesProtocol {
     
     // Метод вызывается при нажатии кнопки добавления новой заметки
     func createButtonTapped() {
@@ -260,14 +236,14 @@ extension NoteViewController: AddingNotesProtocol {
             addActionTitle: "Добавить",
             cancelActionTitle: "Закрыть") { [weak self] title, note in
             let newNote = Note(title: title, isComplete: false, date: Date(), notes: note)
-            self?.notePresenter.addNote(note: newNote)
+            //self?.presenter.addStory(note: newNote)
         }
     }
 }
 
 // MARK: - Реализация AlertViewProtocol для отображения всплывающих окон
 
-extension NoteViewController: AlertViewProtocol {
+extension StoryViewController: AlertViewProtocol {
     // Метод для отображения всплывающего окна с двумя текстовыми полями
     typealias DoubleString = (String, String) -> Void
     

@@ -1,14 +1,14 @@
 //
-//  NotePresenter.swift
+//  StoryPresenter.swift
 //  MVPLesson
 //
-//  Created by Shamil Aglarov on 08.08.2023.
+//  Created by Shamil Aglarov on 26.10.2023.
 //
+// Описание методов, которые должны быть реализованы presenter'ом заметок
+// Описание методов, которые должны быть реализованы presenter'ом заметок
 
 import Foundation
-
-// Описание методов, которые должны быть реализованы presenter'ом заметок
-protocol NotePresenterProtocol {
+protocol StoryPresenterProtocol {
     func loadAnUpdateDisplayData()
     func addNote(note: Note)
     func deleteNote(at index: Int)
@@ -19,17 +19,17 @@ protocol NotePresenterProtocol {
 }
 
 // Класс presenter'а, который управляет логикой работы с заметками
-class NotePresenter: NotePresenterProtocol {
+class StoryPresenter: StoryPresenterProtocol {
     
     // Слабая ссылка на интерфейс view, чтобы избежать утечек памяти
-    private weak var view: NoteViewProtocol?
+    private weak var view: StoryViewProtocol?
     // Сервис для работы с данными (например, для сохранения/загрузки заметок)
     private var dataRepository: ServiceRepositoryProtocol
     // Локальное хранение заметок для быстрого доступа
-    private var notes: [Note] = []
+    private var stories: [Note] = []
     
     // Инициализация presenter'а
-    required init(view: NoteViewProtocol, dataRepository: ServiceRepositoryProtocol) {
+    required init(view: StoryViewProtocol, dataRepository: ServiceRepositoryProtocol) {
         self.view = view
         self.dataRepository = dataRepository
     }
@@ -37,11 +37,11 @@ class NotePresenter: NotePresenterProtocol {
     // Загрузка и обновление данных для отображения
     func loadAnUpdateDisplayData() {
         view?.showLoading() // Показать индикатор загрузки на view
-        dataRepository.fetchNotes(url: dataRepository.noteURL, completion: { [weak self] result in
+        dataRepository.fetchNotes(url: dataRepository.storyURL, completion: { [weak self] result in
             switch result {
             case .success(let notes):
                 // Сортировка заметок по дате
-                self?.notes = notes.sorted(by: { $0.date > $1.date })
+                self?.stories = notes.sorted(by: { $0.date > $1.date })
                 self?.view?.reloadData() // Обновляем данные на view
                 self?.view?.hideLoading() // Скрыть индикатор загрузки
             case .failure(let error):
@@ -51,32 +51,15 @@ class NotePresenter: NotePresenterProtocol {
         })
     }
     
-//    // Загрузка и обновление данных для отображения
-//    func loadAnUpdateDisplayData2() {
-//        view?.showLoading() // Показать индикатор загрузки на view
-//        dataRepository.fetchNotes(url: dataRepository.storyURL, completion: { [weak self] result in
-//            switch result {
-//            case .success(let notes):
-//                // Сортировка заметок по дате
-//                self?.notes = notes.sorted(by: { $0.date > $1.date })
-//                self?.view?.reloadData() // Обновляем данные на view
-//                self?.view?.hideLoading() // Скрыть индикатор загрузки
-//            case .failure(let error):
-//                self?.view?.showError(title: "Ошибка", message: error.localizedDescription)
-//                self?.view?.hideLoading()
-//            }
-//        })
-//    }
-    
     // Добавить новую заметку
     func addNote(note: Note) {
         view?.showLoading()
-        dataRepository.saveData(url: dataRepository.noteURL, note: note, completion: { [weak self] result in
+        dataRepository.saveData(url: dataRepository.storyURL, note: note, completion: { [weak self] result in
             switch result {
             case .success:
-                self?.notes.append(note)
+                self?.stories.append(note)
                 // Снова сортируем заметки
-                self?.notes = self?.notes.sorted(by: { $0.date > $1.date }) ?? []
+                self?.stories = self?.stories.sorted(by: { $0.date > $1.date }) ?? []
                 self?.view?.didInsertRow(at: 0)
                 self?.view?.hideLoading()
             case .failure(let error):
@@ -88,11 +71,11 @@ class NotePresenter: NotePresenterProtocol {
     
     // Удалить заметку по индексу
     func deleteNote(at index: Int) {
-        let note = notes[index]
+        let note = stories[index]
         dataRepository.removeData(url: dataRepository.noteURL, note: note, completion: { [weak self] result in
             switch result {
             case .success:
-                self?.notes.remove(at: index)
+                self?.stories.remove(at: index)
                 self?.view?.didDeleteRow(at: index)
             case .failure(let error):
                 self?.view?.showError(title: "Ошибка", message: error.localizedDescription)
@@ -102,12 +85,12 @@ class NotePresenter: NotePresenterProtocol {
     
     // Вернуть количество заметок
     func numberOfNotes() -> Int {
-        return notes.count
+        return stories.count
     }
     
     // Получить заметку по индексу
     func noteAt(at index: Int) -> Note {
-        return notes[index]
+        return stories[index]
     }
     
     // Получить изображение на основе статуса завершения заметки
@@ -116,22 +99,23 @@ class NotePresenter: NotePresenterProtocol {
     }
     
     // Изменить статус заметки на противоположный
+    // Изменить статус заметки на противоположный
     func isToggleNote(for index: Int) {
-        guard index >= 0, index < notes.count else {
+        guard index >= 0, index < stories.count else {
             // Проверка на правильность индекса, чтобы избежать ошибки Index out of range
             return
         }
+
+        var story = stories[index]
+        story.isComplete.toggle()
         
-        var note = notes[index]
-        note.isComplete.toggle()
-        
-        dataRepository.updateNote(url: dataRepository.noteURL, note, completion: { [weak self] result in
+        dataRepository.updateNote(url: dataRepository.storyURL, story, completion: { [weak self] result in
             switch result {
             case .success:
                 print("Заметка успешно обновилась")
                 // Удалить заметку из массива только если она еще существует в нем
-                if let indexOfNote = self?.notes.firstIndex(where: { $0.id == note.id }) {
-                    self?.notes.remove(at: indexOfNote)
+                if let indexOfNote = self?.stories.firstIndex(where: { $0.id == story.id }) {
+                    self?.stories.remove(at: indexOfNote)
                     self?.view?.didDeleteRow(at: indexOfNote)
                 }
                 
