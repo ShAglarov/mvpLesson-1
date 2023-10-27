@@ -31,8 +31,8 @@ class FileHandler: FileHandlerProtocol {
     init() {
         // Определение директории документов пользователя
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        notesURL = documentsDirectory.appendingPathComponent("todo27").appendingPathExtension("plist")
-        storyNotesURL = documentsDirectory.appendingPathComponent("story27").appendingPathExtension("plist")
+        notesURL = documentsDirectory.appendingPathComponent("todo30").appendingPathExtension("plist")
+        storyNotesURL = documentsDirectory.appendingPathComponent("story30").appendingPathExtension("plist")
         
         // Проверка существования файла по указанному URL. Если файл не существует, он создаётся.
         [notesURL, storyNotesURL].forEach {
