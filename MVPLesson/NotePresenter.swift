@@ -51,6 +51,23 @@ class NotePresenter: NotePresenterProtocol {
         })
     }
     
+//    // Загрузка и обновление данных для отображения
+//    func loadAnUpdateDisplayData2() {
+//        view?.showLoading() // Показать индикатор загрузки на view
+//        dataRepository.fetchNotes(url: dataRepository.storyURL, completion: { [weak self] result in
+//            switch result {
+//            case .success(let notes):
+//                // Сортировка заметок по дате
+//                self?.notes = notes.sorted(by: { $0.date > $1.date })
+//                self?.view?.reloadData() // Обновляем данные на view
+//                self?.view?.hideLoading() // Скрыть индикатор загрузки
+//            case .failure(let error):
+//                self?.view?.showError(title: "Ошибка", message: error.localizedDescription)
+//                self?.view?.hideLoading()
+//            }
+//        })
+//    }
+    
     // Добавить новую заметку
     func addNote(note: Note) {
         view?.showLoading()
@@ -100,28 +117,26 @@ class NotePresenter: NotePresenterProtocol {
     
     // Изменить статус заметки на противоположный
     func isToggleNote(for index: Int) {
+        guard index >= 0, index < notes.count else {
+            // Проверка на правильность индекса, чтобы избежать ошибки Index out of range
+            return
+        }
+        
         var note = notes[index]
         note.isComplete.toggle()
-
-        dataRepository.updateNote(url: dataRepository.noteURL, note, completion: { result in
+        
+        dataRepository.updateNote(url: dataRepository.noteURL, note, completion: { [weak self] result in
             switch result {
             case .success:
                 print("Заметка успешно обновилась")
-                self.notes.remove(at: index)
-                self.view?.didDeleteRow(at: index)
-                
-                // Добавляем эту же заметку в другую таблицу/базу данных
-                self.dataRepository.saveData(url: self.dataRepository.storyURL, note: note, completion: { result in
-                    switch result {
-                    case .success:
-                        print("Заметка успешно добавлена в другую таблицу")
-                    case .failure(let error):
-                        self.view?.showError(title: "Ошибка", message: "Не удалось добавить заметку в другую таблицу: \(error.localizedDescription)")
-                    }
-                })
+                // Удалить заметку из массива только если она еще существует в нем
+                if let indexOfNote = self?.notes.firstIndex(where: { $0.id == note.id }) {
+                    self?.notes.remove(at: indexOfNote)
+                    self?.view?.didDeleteRow(at: indexOfNote)
+                }
                 
             case .failure(let error):
-                self.view?.showError(title: "Ошибка4", message: error.localizedDescription)
+                self?.view?.showError(title: "Ошибка", message: error.localizedDescription)
             }
         })
     }

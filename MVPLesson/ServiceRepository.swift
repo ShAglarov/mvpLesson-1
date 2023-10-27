@@ -101,16 +101,26 @@ final class ServiceRepository: ServiceRepositoryProtocol {
         }
         
         // Обновляем заметку в кэше
-        if noteToUpdate.isComplete {
-            notesCache[index] = noteToUpdate
-            storyCache.append(notesCache[index])  // Добавляем в storyCache
-            notesCache.remove(at: index)          // Удаляем из notesCache
+        if url == fileHandler.notesURL {
+            storyCache.append(noteToUpdate)  // Добавляем в storyCache
+            notesCache.remove(at: index)     // Удаляем из notesCache
+        } else {
+            notesCache.append(noteToUpdate)
+            storyCache.remove(at: index)
         }
         
         // Кодируем заметки из notesCache и сохраняем в файл
         switch fileHandler.encodeNotes(notesCache) {
         case .success(let data):
             fileHandler.write(from: url, data, completion: completion)
+        case .failure(let error):
+            completion(.failure(error))
+        }
+        
+        // Кодируем и сохраняем заметку в storyURL
+        switch fileHandler.encodeNotes(storyCache) {
+        case .success(let data):
+            fileHandler.write(from: storyURL, data, completion: completion)
         case .failure(let error):
             completion(.failure(error))
         }

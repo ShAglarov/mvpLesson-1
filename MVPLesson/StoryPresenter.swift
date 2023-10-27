@@ -6,6 +6,8 @@
 //
 // Описание методов, которые должны быть реализованы presenter'ом заметок
 // Описание методов, которые должны быть реализованы presenter'ом заметок
+
+import Foundation
 protocol StoryPresenterProtocol {
     func loadAnUpdateDisplayData()
     func addNote(note: Note)
@@ -97,29 +99,28 @@ class StoryPresenter: StoryPresenterProtocol {
     }
     
     // Изменить статус заметки на противоположный
+    // Изменить статус заметки на противоположный
     func isToggleNote(for index: Int) {
-        var note = stories[index]
-        note.isComplete.toggle()
+        guard index >= 0, index < stories.count else {
+            // Проверка на правильность индекса, чтобы избежать ошибки Index out of range
+            return
+        }
 
-        dataRepository.updateNote(url: dataRepository.storyURL, note, completion: { result in
+        var story = stories[index]
+        story.isComplete.toggle()
+        
+        dataRepository.updateNote(url: dataRepository.storyURL, story, completion: { [weak self] result in
             switch result {
             case .success:
                 print("Заметка успешно обновилась")
-                self.stories.remove(at: index)
-                self.view?.didDeleteRow(at: index)
-                
-                // Добавляем эту же заметку в другую таблицу/базу данных
-                self.dataRepository.saveData(url: self.dataRepository.noteURL, note: note, completion: { result in
-                    switch result {
-                    case .success:
-                        print("Заметка успешно добавлена в другую таблицу")
-                    case .failure(let error):
-                        self.view?.showError(title: "Ошибка", message: "Не удалось добавить заметку в другую таблицу: \(error.localizedDescription)")
-                    }
-                })
+                // Удалить заметку из массива только если она еще существует в нем
+                if let indexOfNote = self?.stories.firstIndex(where: { $0.id == story.id }) {
+                    self?.stories.remove(at: indexOfNote)
+                    self?.view?.didDeleteRow(at: indexOfNote)
+                }
                 
             case .failure(let error):
-                self.view?.showError(title: "Ошибка4", message: error.localizedDescription)
+                self?.view?.showError(title: "Ошибка", message: error.localizedDescription)
             }
         })
     }
